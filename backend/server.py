@@ -364,10 +364,12 @@ app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_origins=["https://team-hub-one.vercel.app/","https://team-eseefnish-vamshikrishnaprathapagiri-gmailcoms-projects.vercel.app","https://team-eseefnish-vamshikrishnaprathapagiri-gmailcoms-projects.vercel.app", "http://localhost:3000"],
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_origin_regex="https://.*\\.vercel\\.app",
+    expose_headers=["Access-Control-Allow-Origin"]
 )
 
 # Configure logging
