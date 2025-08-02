@@ -7,12 +7,13 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { useToast } from '../hooks/use-toast';
-import { mockAuth } from '../mock';
+import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, UserPlus, LogIn } from 'lucide-react';
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signin, signup } = useAuth();
 
   // Sign In State
   const [signInData, setSignInData] = useState({
@@ -31,10 +32,19 @@ const AuthPage = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    if (!signInData.email || !signInData.password) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const result = mockAuth.signIn(signInData.email, signInData.password);
+      const result = await signin(signInData.email, signInData.password);
       
       if (result.success) {
         toast({
@@ -62,10 +72,28 @@ const AuthPage = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    if (!signUpData.email || !signUpData.password || !signUpData.role) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (signUpData.password.length < 6) {
+      toast({
+        title: "Validation Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const result = mockAuth.signUp(signUpData.email, signUpData.password, signUpData.role);
+      const result = await signup(signUpData.email, signUpData.password, signUpData.role);
       
       if (result.success) {
         toast({
@@ -196,11 +224,12 @@ const AuthPage = () => {
                       <Input
                         id="signup-password"
                         type="password"
-                        placeholder="Create a password"
+                        placeholder="Create a password (min 6 chars)"
                         value={signUpData.password}
                         onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                         className="pl-10 h-12 transition-all focus:ring-2 focus:ring-slate-500/20"
                         required
+                        minLength={6}
                       />
                     </div>
                   </div>
@@ -254,10 +283,6 @@ const AuthPage = () => {
             </div>
           </CardContent>
         </Card>
-
-        <div className="text-center mt-6 text-sm text-slate-500 animate-in fade-in duration-1000 delay-500">
-          Demo credentials: admin@company.com / admin123
-        </div>
       </div>
     </div>
   );

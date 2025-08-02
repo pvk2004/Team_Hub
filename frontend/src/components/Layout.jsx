@@ -9,16 +9,16 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { LogOut, Settings, User } from 'lucide-react';
-import { mockAuth } from '../mock';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/use-toast';
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const currentUser = mockAuth.getCurrentUser();
+  const { currentUser, logout, isAdmin } = useAuth();
 
   const handleLogout = () => {
-    mockAuth.logout();
+    logout();
     toast({
       title: "Logged out successfully",
       description: "You have been logged out of Team Hub.",
@@ -27,7 +27,7 @@ const Layout = ({ children }) => {
   };
 
   const handleAdminClick = () => {
-    if (currentUser.role === 'admin') {
+    if (isAdmin()) {
       navigate('/admin');
     } else {
       toast({
@@ -86,7 +86,7 @@ const Layout = ({ children }) => {
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">Admin Panel</span>
                       <span className="text-xs text-slate-500">
-                        {currentUser?.role === 'admin' ? 'Manage users' : 'Access restricted'}
+                        {isAdmin() ? 'Manage users' : 'Access restricted'}
                       </span>
                     </div>
                   </DropdownMenuItem>
