@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Plus, MessageSquare } from 'lucide-react';
-import { mockAnnouncementAPI } from '../mock';
+import { announcementAPI, handleApiError } from '../services/api';
 import AnnouncementCard from '../components/AnnouncementCard';
 import CreateEditDialog from '../components/CreateEditDialog';
 import { useToast } from '../hooks/use-toast';
@@ -20,12 +20,13 @@ const Dashboard = () => {
   const loadAnnouncements = async () => {
     try {
       setIsLoading(true);
-      const data = await mockAnnouncementAPI.getAll();
+      const data = await announcementAPI.getAll();
       setAnnouncements(data);
     } catch (error) {
+      const errorMessage = handleApiError(error);
       toast({
         title: "Error",
-        description: "Failed to load announcements",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -45,16 +46,17 @@ const Dashboard = () => {
 
   const handleDeleteAnnouncement = async (id) => {
     try {
-      await mockAnnouncementAPI.delete(id);
+      await announcementAPI.delete(id);
       toast({
         title: "Announcement deleted",
         description: "The announcement has been removed successfully.",
       });
       loadAnnouncements();
     } catch (error) {
+      const errorMessage = handleApiError(error);
       toast({
         title: "Error",
-        description: "Failed to delete announcement",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -63,13 +65,13 @@ const Dashboard = () => {
   const handleSaveAnnouncement = async (title, content) => {
     try {
       if (editingAnnouncement) {
-        await mockAnnouncementAPI.update(editingAnnouncement.id, title, content);
+        await announcementAPI.update(editingAnnouncement.id, title, content);
         toast({
           title: "Announcement updated",
           description: "Your changes have been saved successfully.",
         });
       } else {
-        await mockAnnouncementAPI.create(title, content);
+        await announcementAPI.create(title, content);
         toast({
           title: "Announcement created",
           description: "Your announcement has been published successfully.",
@@ -79,9 +81,10 @@ const Dashboard = () => {
       setEditingAnnouncement(null);
       loadAnnouncements();
     } catch (error) {
+      const errorMessage = handleApiError(error);
       toast({
         title: "Error",
-        description: "Failed to save announcement",
+        description: errorMessage,
         variant: "destructive",
       });
     }

@@ -8,14 +8,14 @@ import {
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { MoreVertical, Edit, Trash2, User, Calendar } from 'lucide-react';
-import { mockAuth } from '../mock';
+import { useAuth } from '../context/AuthContext';
 
 const AnnouncementCard = ({ announcement, onEdit, onDelete }) => {
-  const currentUser = mockAuth.getCurrentUser();
-  const canModify = currentUser?.email === announcement.author || currentUser?.role === 'admin';
+  const { currentUser } = useAuth();
+  const canModify = currentUser?.email === announcement.author_email || currentUser?.role === 'admin';
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -84,13 +84,13 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete }) => {
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
               <User className="w-3 h-3" />
-              <span className="font-medium">{announcement.author}</span>
+              <span className="font-medium">{announcement.author_email}</span>
             </div>
           </div>
           <div className="flex items-center space-x-1">
             <Calendar className="w-3 h-3" />
-            <time dateTime={announcement.createdAt} className="font-medium">
-              {formatDate(announcement.createdAt)}
+            <time dateTime={announcement.created_at} className="font-medium">
+              {formatDate(announcement.created_at)}
             </time>
           </div>
         </div>

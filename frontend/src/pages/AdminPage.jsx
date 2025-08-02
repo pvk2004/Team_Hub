@@ -18,7 +18,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Users, Shield, UserCheck, Save, CheckCircle2 } from 'lucide-react';
-import { mockUserAPI } from '../mock';
+import { adminAPI, handleApiError } from '../services/api';
 import { useToast } from '../hooks/use-toast';
 
 const AdminPage = () => {
@@ -34,12 +34,19 @@ const AdminPage = () => {
   const loadUsers = async () => {
     try {
       setIsLoading(true);
-      const data = await mockUserAPI.getAll();
-      setUsers(data);
+      const data = await adminAPI.getAllUsers();
+      // Add hasUnsavedChanges property to track changes
+      const usersWithChangeTracking = data.map(user => ({
+        ...user,
+        hasUnsavedChanges: false,
+        originalRole: user.role
+      }));
+      setUsers(usersWithChangeTracking);
     } catch (error) {
+      const errorMessage = handleApiError(error);
       toast({
         title: "Error",
-        description: "Failed to load users",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -48,32 +55,44 @@ const AdminPage = () => {
   };
 
   const handleRoleChange = (userId, newRole) => {
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, role: newRole, hasUnsavedChanges: user.role !== newRole }
-        : user
-    ));
+    setUsers(users.map(user => {
+      if (user.id === userId) {
+        return { 
+          ...user, 
+          role: newRole, 
+          hasUnsavedChanges: user.originalRole !== newRole 
+        };
+      }
+      return user;
+    }));
   };
 
   const handleSaveRole = async (userId, newRole) => {
     try {
       setSavingUserId(userId);
-      await mockUserAPI.updateRole(userId, newRole);
+      const response = await adminAPI.updateUserRole(userId, newRole);
       
-      setUsers(users.map(user => 
-        user.id === userId 
-          ? { ...user, role: newRole, hasUnsavedChanges: false }
-          : user
-      ));
+      setUsers(users.map(user => {
+        if (user.id === userId) {
+          return { 
+            ...user, 
+            role: newRole, 
+            originalRole: newRole,
+            hasUnsavedChanges: false 
+          };
+        }
+        return user;
+      }));
 
       toast({
         title: "Role updated successfully",
-        description: "User role has been changed and saved.",
+        description: response.message || "User role has been changed and saved.",
       });
     } catch (error) {
+      const errorMessage = handleApiError(error);
       toast({
         title: "Error",
-        description: "Failed to update user role",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
